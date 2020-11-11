@@ -1,8 +1,8 @@
 import pandas as pd
-
+import numpy as np
 import itertools
 
-START_INDEX = 10
+START_INDEX = 0
 END_INDEX = 100
 
 
@@ -18,6 +18,9 @@ def make_tag_averages(user_df, tag_df, tag):
 	# Average for rating of movie with that genre, minus that specific movie. Weighted by relevance of tag to movies
 	av_list = (numer - tag_df["rating"]*tag_df["relevance"])/(denom - tag_df["relevance"])
 
+	# av_list = av_list.replace([np.inf, -np.inf], np.nan)
+	av_list.fillna(0, inplace=True)
+
 	return av_list
 
 def make_genre_averages(user_df, genre):
@@ -31,6 +34,9 @@ def make_genre_averages(user_df, genre):
 
 	# Average for ratings of movie with that genre, minus that specific movie
 	av_list = (numer - genre_df["rating"])/(denom - 1)
+
+	# av_list = av_list.replace([np.inf, -np.inf], np.nan)
+	av_list.fillna(0, inplace=True)
 
 	return av_list
 
