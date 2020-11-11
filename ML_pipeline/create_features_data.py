@@ -2,9 +2,6 @@ import pandas as pd
 import numpy as np
 import itertools
 
-START_INDEX = 0
-END_INDEX = -1
-
 
 def make_tag_averages(user_df, tag_df, tag):
 
@@ -149,6 +146,9 @@ def main():
     print( df.shape[0] / (num_users * num_movies))
 
     unique_users = df["userId"].unique()
+
+    START_INDEX = 0
+    END_INDEX = -1
 
     if END_INDEX == -1:
         END_INDEX = num_users
