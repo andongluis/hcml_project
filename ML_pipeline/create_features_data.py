@@ -3,7 +3,7 @@ import numpy as np
 import itertools
 
 START_INDEX = 0
-END_INDEX = 100
+END_INDEX = 200
 
 
 def make_tag_averages(user_df, tag_df, tag):
@@ -108,12 +108,16 @@ def create_user_ratings(df, userId):
 
 	# Column for ratings
 	ratings = user_df["rating"]
+
+	# Column for movieId
+	movie_ids = user_df["movieId"]
 	
 	# Put everythin together
 	final_dict = tag_av_dict
 	final_dict.update(genre_av_dict)
 	final_dict["userId"] = user_ids
 	final_dict["rating"] = ratings
+	final_dict["movieId"] = movie_ids
 
 	final_df = pd.DataFrame(final_dict)
 
