@@ -45,3 +45,7 @@ print(np.std(weights))
 weights.sort()
 print(weights[0:5])
 print(weights[-5:])
+
+regressor.coef_[0] = 123
+
+print(weights)
