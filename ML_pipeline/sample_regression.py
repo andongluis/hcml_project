@@ -6,8 +6,8 @@ import pandas as pd
 
 import numpy as np
 
-#INPUT_FILE = "features/3640_feature_vecs.csv"
-INPUT_FILE = "features/3742_feature_vecs.csv"
+INPUT_FILE = "features/3640_feature_vecs.csv"
+#INPUT_FILE = "features/3742_feature_vecs.csv"
 
 df = pd.read_csv(INPUT_FILE)
 
