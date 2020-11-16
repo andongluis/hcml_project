@@ -3,6 +3,24 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
+def explainer(feature1, feature2):
+    st = 'Your recommendation was '+determiner(feature1[1],feature2[1])+'most significantly impacted by '+ feature[0]
+    pass
+
+def determiner(sd1, sd2):
+    close_choice = {
+        'roughly': ['roughly', 'approximately', 'nearly', ''],
+        'evenly': ['evenly', 'equally']
+    }
+    uneven_choice = {
+        'most': ['most significantly', 'mostly'],
+        'impacted': ['impacted', 'driven', 'affected']
+        'second': ['']
+    }
+    if abs(sd1-sd2)<2:
+        return random.choice(choice['roughly'])+' '+random.choice(choice['evenly'])
+    else:
+
 
 def provide_explanation(features_and_weights, weights):
     # Keep only non-zero weights
@@ -11,21 +29,39 @@ def provide_explanation(features_and_weights, weights):
     # Calculate standard deviation and average for weights and pair 
     sd = np.std(weights)
     avg = np.average(weights)
-    feature_from_sd = [(f[0], abs((f[1]-avg)/sd)) for f in features_and_weights]
+    feature_from_sd = [(f[0], abs((f[1]-avg)/sd), 1 if f[1]>=0 else -1) for f in features_and_weights]
 
-    print(feature_from_sd)
+    explanation = explainer(feature_from_sd[0], feature_from_sd[1])
+
+    return explanation
     
 def highest_weight_features(weights, input_file):
     with open(input_file, 'r') as f:
-        features = f.readlines()[0].split(',')
+        lines = f.readlines()
+        features = lines[0].split(',')
+        sample_movie = []
+        for x in lines[10].split(','):
+            try:
+                sample_movie.append(float(x))
+            except ValueError:
+                sample_movie.append(0)
+        print(len(sample_movie))
 
         # Remove features without weights
         to_remove = ["rating","movieId_x","movieId_y","userId"]
         for r in to_remove:
-            features.remove(r)
+            idx = features.index(r)
+            features.pop(idx)
+            sample_movie.pop(idx)
 
+        sample_movie = np.array(sample_movie)
+
+
+        # Recalculated weights
+        recalculated_weights = np.multiply(weights, np.array(sample_movie))
+        
         # Get absolute values for all weights for sorting reasons
-        weights_abs = [(abs(w),(True if w>=0 else False)) for w in weights]
+        weights_abs = [(abs(w),(True if w>=0 else False)) for w in recalculated_weights]
 
         # Match each weight with its feature
         features_and_weights = zip(features, weights_abs)
