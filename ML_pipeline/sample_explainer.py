@@ -1,14 +1,17 @@
 import csv
 import pandas as pd
 import numpy as np
+import random
 from sklearn.linear_model import LinearRegression
 
 # function to generate nlg explanation for the score using the impact from the top 2 impactful features
 def explainer(score, feature1, feature2):
     feature1_z, feature1_sign, feature1 = feature1[1], feature1[2], feature1[0]
     feature2_z, feature2_sign, feature2 = feature2[1], feature2[2], feature2[0]
-    score = 'This movie received a score of '+str(score)+' on a 1-5 scale.'
-    what = 'Your recommendation was '+determiner(feature1,feature2, feature1_z, feature2_z)+'.'
+    features = [feature1, feature2]
+    feature1, feature2 = [feature.split('_')[0]+' tags' if 'tag_av' in feature else feature for feature in features]
+    score = 'This movie received a score of '+str(round(score[0], 1))+' on a 1-5 scale.'
+    what = 'Your recommendation was '+determiner(feature1,feature2, feature1_z, feature2_z)
     how = signs(feature1, feature2, feature1_sign, feature2_sign)
     return score + ' ' + what + ' ' + how
 
@@ -31,7 +34,7 @@ def signs(feature1, feature2, feature_sign1, feature_sign2):
 
     word_choice = {
         'choice1': ['taking the other features into account', 'adjusting for the other features'],
-        'choice2': ['both', '']
+        'choice2': ['both ', '']
     }
     contrast_choice = {
         'contrast': ['While', 'Whereas', '']
@@ -40,7 +43,7 @@ def signs(feature1, feature2, feature_sign1, feature_sign2):
     contrast = cont_choice != ''
 
     if feature_sign1 == feature_sign2:
-        return ('After '+random.choice(word_choice['choice1'])+', '+random.choice(word_choice['choice2'])
+        return ('After '+random.choice(word_choice['choice1'])+', '+random.choice(word_choice['choice2']) 
             +feature1+' and '+feature2+' '+ f1_dir +' the score.')
     else:
         return (cont_choice+' '+features[num]+' '+f_dirs[num]+(' the score' if random.randint(0,1)==1 else '')+', '+('' if contrast else 'while ')+
@@ -54,13 +57,9 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
     }
     most = ['most','most significantly', 'more']
     impact = {
-        'impact': ['impacted', 'driven', 'affected','influenced'],
+        'driven': ['impacted', 'driven', 'affected','influenced'],
         'impacted': ['impacted', 'affected', 'influenced', 'drove'],
         'effect': ['effect', 'impact']
-    }
-    second = {
-        'addition': []
-        'second': ['second most', 'secondarily it']
     }
     magnitude = {
         'biggest': ['biggest','greatest','highest','most'],
@@ -69,25 +68,26 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
     dominated_choice = {
         'dominated': ['dominated', 'much more impacted', 'significantly more affected']
     }
-    close = close(feature1_z, feature2_z)
-    dominated = dominated(feature1_z, feature2_z)
-    if close and feature1_z >= 2:
-        return (random.choice(most)+' and '+random.choice(choice['roughly'])+' '+random.choice(choice['evenly'])+' 'random.choice(impact['impact'])
+    is_close = close(feature1_z, feature2_z)
+    is_dominated = dominated(feature1_z, feature2_z)
+    but_str = ['. But ', ', but ', '. ']
+    sig = feature2_z >= 2
+    if is_close and feature1_z >= 2:
+        return (random.choice(most)+' and '+random.choice(choice['roughly'])+' '+random.choice(choice['evenly'])+' '+random.choice(impact['driven'])
             +' by '+feature1+' and '+feature2)
-        )
-    elif close:
-        return ('not significantly '+random.choice(impact['impact']+' by any feature, but '+feature1+' and '+feature2+' had the '+random.choice(magnitude['biggest'])+' ' 
+    elif is_close:
+        return ('not significantly '+random.choice(impact['driven'])+' by any feature, but '+feature1+' and '+feature2+' had the '+random.choice(magnitude['biggest'])+' ' 
             + random.choice(impact['effect'])+' on the score.')
-    elif dominated:
-        sig = feature2_z >= 2
-        comma = random.randint(0,1)>0
-        but_str = ['. But ', ', but ', '. ']
-        return (random.choice(dominated_choice['dominated']) + ' by ' +feature1 + (random.choice(but_str) + 
+    elif is_dominated:
+        return (random.choice(dominated_choice['dominated']) + ' by ' +feature1 + random.choice(but_str) + 
             feature2 + ' also had significant '+random.choice(impact['effect']+'.') if sig else '. ' + feature2 + ' also ' + random.randint(impact['impacted']) + ' the score.')
     else:
-        phrase1 = feature1 + ' ' + random.choice(impact['impacted']) + ' the score '+
+        phrase = (random.choice(impact['driven']) + ' ' + random.choice(most) + ' by ' + 
+            feature1 + random.choice(but_str) + feature2)
+        phrase1 = ' '+random.choice(impact['impacted']) + ' the score ' + ('significantly ' if sig else '') + 'as well.'
+        phrase2 = ' also had ' + ('significant ' if sig else '') + random.choice(impact['effect']) + '.' 
         phrasing = [phrase1, phrase2]
-        return (feature1 + ' ' + random.choice(impact['impacted']) + ' the score '+)
+        return phrase + random.choice(phrasing)
         
 
 
@@ -95,7 +95,7 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
 
 # calculate z-scores and create feature objects (holding feature name, z-score and weight sign)
 # then calls explainer function
-def provide_explanation(features_and_weights, weights):
+def provide_explanation(features_and_weights, weights, regressor, sample_movie):
     # Keep only non-zero weights
     weights = [w for w in weights if w != 0]
 
@@ -103,8 +103,9 @@ def provide_explanation(features_and_weights, weights):
     sd = np.std(weights)
     avg = np.average(weights)
     feature_from_z = [(f[0], abs((f[1]-avg)/sd), 1 if f[1]>=0 else -1) for f in features_and_weights]
+    score = regressor.predict(sample_movie.reshape(1,-1))
 
-    return explainer(feature_from_z, feature_from_z)
+    return explainer(score, *feature_from_z)
     
 # get the 2 movies with the greatest impact on final score, together with their weight for a sample movie and the sign of their weights
 def highest_weight_features(weights, input_file):
@@ -112,12 +113,11 @@ def highest_weight_features(weights, input_file):
         lines = f.readlines()
         features = lines[0].split(',')
         sample_movie = []
-        for x in lines[10].split(','):
+        for x in lines[1].split(','):
             try:
                 sample_movie.append(float(x))
             except ValueError:
                 sample_movie.append(0)
-        print(len(sample_movie))
 
         # Remove features without weights
         to_remove = ["rating","movieId_x","movieId_y","userId"]
@@ -145,7 +145,7 @@ def highest_weight_features(weights, input_file):
         top_two = ([(feature_and_weight[0], (feature_and_weight[1][0] if feature_and_weight[1][1] 
                     else -feature_and_weight[1][0])) for feature_and_weight in features_and_weights_sorted[:2]])
 
-        return top_two
+        return top_two, sample_movie
 
         
 
@@ -176,8 +176,8 @@ def main():
     regressor = LinearRegression()
     regressor.fit(X,Y)
 
-    features = highest_weight_features(regressor.coef_, INPUT_FILE)
-    provide_explanation(features, regressor.coef_)
+    features, sample_movie = highest_weight_features(regressor.coef_, INPUT_FILE)
+    print(provide_explanation(features, regressor.coef_, regressor, sample_movie))
 
 
 if __name__=='__main__':
