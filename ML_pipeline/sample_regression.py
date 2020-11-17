@@ -6,8 +6,8 @@ import pandas as pd
 
 import numpy as np
 
-INPUT_FILE = "features/3640_feature_vecs.csv"
-#INPUT_FILE = "features/3742_feature_vecs.csv"
+# INPUT_FILE = "features/3640_feature_vecs.csv"
+INPUT_FILE = "features/3742_feature_vecs.csv"
 
 df = pd.read_csv(INPUT_FILE)
 
@@ -21,7 +21,6 @@ X = df.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
 # Fill NaN's will 0's, justin case
 X.fillna(0, inplace=True)
 
-
 # Mean normalization
 # X=(X-X.mean())/X.std()
 
@@ -30,12 +29,15 @@ X=(X-X.min())/(X.max()-X.min())
 
 X.fillna(0, inplace=True)
 
+print(X.shape)
+print(Y.shape)
+
 regressor = LinearRegression()
 regressor.fit(X,Y)
 
 
 
-for i in range(X.shape[0]):
+for i in range(min(X.shape[0], 10)):
 	print(f"{i} my thingy")
 	a_row = np.array(X.iloc[i]).reshape(1, -1)
 	print(regressor.predict(a_row))
