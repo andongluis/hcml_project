@@ -3,23 +3,39 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-def explainer(feature1, feature2):
-    st = 'Your recommendation was '+determiner(feature1[1],feature2[1])+'most significantly impacted by '+ feature[0]
+def explainer(score, feature1, feature2):
+    score = 'This movie received a score of '+str(score)+' on a 1-5 scale.'
+    what = 'Your recommendation was '+determiner(feature1[0],feature2[0], close(feature[1], feature[2]))+'.'
+    how = 
     pass
 
-def determiner(sd1, sd2):
+def close(sd1, sd2):
+    return abs(sd1-sd2)<2
+
+def signs(feature1_sign, feature2_sign):
+
+
+def determiner(feature1, feature2, close):
     close_choice = {
         'roughly': ['roughly', 'approximately', 'nearly', ''],
         'evenly': ['evenly', 'equally']
     }
-    uneven_choice = {
-        'most': ['most significantly', 'mostly'],
-        'impacted': ['impacted', 'driven', 'affected']
-        'second': ['']
+    most = {
+        'most': ['most','most significantly', 'mostly', 'primarily']
     }
-    if abs(sd1-sd2)<2:
-        return random.choice(choice['roughly'])+' '+random.choice(choice['evenly'])
+    impact = {
+        'impact': ['impacted', 'driven', 'affected','influenced']
+    }
+    second = {
+        'addition': []
+        'second': ['second most', 'secondarily it']
+    }
+    if close:
+        return (random.choice(most['most'])+' and '+random.choice(choice['roughly'])+' '+random.choice(choice['evenly'])+' 'random.choice(impact['impact'])
+            +' by '+feature1+' and '+feature2)
+        )
     else:
+        return random.choice(uneven_choice['first'])+' '+random.choice(impact['impact'])
 
 
 def provide_explanation(features_and_weights, weights):
