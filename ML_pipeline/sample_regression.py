@@ -6,8 +6,8 @@ import pandas as pd
 
 import numpy as np
 
-#INPUT_FILE = "features/3640_feature_vecs.csv"
-INPUT_FILE = "features/3742_feature_vecs.csv"
+INPUT_FILE = "features/3640_feature_vecs.csv"
+#INPUT_FILE = "features/3742_feature_vecs.csv"
 
 df = pd.read_csv(INPUT_FILE)
 
@@ -32,6 +32,14 @@ X.fillna(0, inplace=True)
 
 regressor = LinearRegression()
 regressor.fit(X,Y)
+
+
+
+for i in range(X.shape[0]):
+	print(f"{i} my thingy")
+	a_row = np.array(X.iloc[i]).reshape(1, -1)
+	print(regressor.predict(a_row))
+	print(Y.iloc[i])
 
 weights = regressor.coef_
 
