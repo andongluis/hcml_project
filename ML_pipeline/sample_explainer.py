@@ -4,16 +4,44 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 def explainer(score, feature1, feature2):
+    feature1_sd = feature1[1]
+    feature1_sign = feature1[2]
+    feature1 = feature1[0]
+    feature2_sd = feature2[1]
+    feature2_sign = feature2[2]
+    feature2 = feature2[0]
     score = 'This movie received a score of '+str(score)+' on a 1-5 scale.'
-    what = 'Your recommendation was '+determiner(feature1[0],feature2[0], close(feature[1], feature[2]))+'.'
-    how = 
+    what = 'Your recommendation was '+determiner(feature1,feature2, close(feature1_sd, feature2_sd))+'.'
+    how = signs(feature1, feature2, feature1_sign, feature2_sign)
     pass
 
 def close(sd1, sd2):
     return abs(sd1-sd2)<2
 
-def signs(feature1_sign, feature2_sign):
+def signs(feature1, feature2, feature_sign1, feature_sign2):
+    contrast = False
+    f1_dir = ('increased' if feature_sign1 == 1 else 'decreased')
+    f2_dir = ('increased' if feature_sign2 == 1 else 'decreased')
+    f_dirs = [f1_dir, f2_dir]
+    features = [(feature1 + ' ' + f1_dir), (feature2 + ' ' + f2_dir)]
+    num = random.randint(0,1)
 
+    word_choice = {
+        'choice1': ['taking the other features into account', 'adjusting for the other features'],
+        'choice2': ['both', '']
+    }
+    contrast_choice = {
+        'contrast': ['While', 'Whereas', '']
+    }
+    cont_choice = random.choice(contrast_choice['contrast'])
+    contrast = cont_choice != ''
+
+    if feature_sign1 == feature_sign2:
+        return ('After '+random.choice(word_choice['choice1'])+', '+random.choice(word_choice['choice2'])
+            +feature1+' and '+feature2+' '+ f1_dir +' the score.')
+    else:
+        return (cont_choice+' '+features[num]+' '+f_dirs[num]+(' the score' if random.randint(0,1)==1 else '')+', '+('while ' if contrast else '')+
+            features[(num+1)%2] + ' '+f_dirs[(num+1)%2])+' the score.'
 
 def determiner(feature1, feature2, close):
     close_choice = {
@@ -47,7 +75,7 @@ def provide_explanation(features_and_weights, weights):
     avg = np.average(weights)
     feature_from_sd = [(f[0], abs((f[1]-avg)/sd), 1 if f[1]>=0 else -1) for f in features_and_weights]
 
-    explanation = explainer(feature_from_sd[0], feature_from_sd[1])
+    explanation = explainer(feature_from_sd, feature_from_sd)
 
     return explanation
     
