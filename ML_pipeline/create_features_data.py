@@ -132,6 +132,24 @@ def create_user_ratings(df, userId):
 
 
 
+import pickle
+
+def save_unique_shit():
+    # Get list of unique tags and print them
+    print("Unique tags")
+    print(TAG_NAME_DICT.values())
+
+
+    # Get list of unique genres and print them
+    print("Unique genres")
+    print(UNIQUE_GENRES)
+
+    my_dict = {"unique_tags": list(TAG_NAME_DICT.values()), "unique_genres": UNIQUE_GENRES}
+
+
+    with open('unique_tags_genres.pickle', 'wb') as handle:
+        pickle.dump(my_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 def main():
 
@@ -145,19 +163,21 @@ def main():
 
     print( df.shape[0] / (num_users * num_movies))
 
-    unique_users = df["userId"].unique()
+    # unique_users = df["userId"].unique()
 
-    START_INDEX = 0
-    END_INDEX = -1
+    # START_INDEX = 0
+    # END_INDEX = -1
 
-    if END_INDEX == -1:
-        END_INDEX = num_users
+    # if END_INDEX == -1:
+    #     END_INDEX = num_users
 
-    for user in unique_users[START_INDEX:END_INDEX]:
-        print(user)
-        create_user_ratings(df, user)
+    # for user in unique_users[START_INDEX:END_INDEX]:
+    #     print(user)
+    #     create_user_ratings(df, user)
 
-    exit()
+    # exit()
+
+    # save_unique_shit()
 
 
 
