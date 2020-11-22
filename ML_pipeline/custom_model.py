@@ -11,6 +11,7 @@ class Custom_Model(object):
 		self.original_parameters = None
 		self.masked_parameters = None # 1 if masked, 0 otherwise
 		self.n_features = 0
+		self.index_map = dict()  # find the tags!
 
 	def train(self, X, Y):
 		self.regressor.fit(X, Y)
@@ -51,7 +52,13 @@ class Custom_Model(object):
 	def n_most_relevant(self, n):
 		return self.parameter_relevance()[:n]
 
+	def predict(self, unseen_user):
+		"""
+		TODO: prediction function. Should return a list of movie ids or titles, either one is fine.
+		"""
+		pass
 
+"""
 model = Custom_Model()
 model.train_with_file("features/3640_feature_vecs.csv")
 
@@ -80,3 +87,4 @@ print(model.regressor.coef_[max_index])
 
 # Print 10 most relevant feature indexes
 print(model.n_most_relevant(10))
+"""
