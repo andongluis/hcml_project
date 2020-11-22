@@ -11,6 +11,7 @@ class Custom_Model(object):
 		self.original_parameters = None
 		self.masked_parameters = None # 1 if masked, 0 otherwise
 		self.n_features = 0
+		self.index_map = dict()  # find the tags!
 
 	def train(self, X, Y):
 		self.regressor.fit(X, Y)

@@ -31,5 +31,10 @@ def predict():
     int_features = [x for x in request.form.values()]
 
     user_data = np.array(int_features)
-    prediction = model.predict(user_data) # Assuming it's a list
-    return render_template('home.html', pred='Predicted movies are {}'.format(prediction))
+    # prediction = model.predict(user_data) # Assuming it's a list
+    # return render_template('home.html', pred='Predicted movies are {}'.format(prediction))
+    return render_template('home.html', pred="Success!")
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
