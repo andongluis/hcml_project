@@ -19,6 +19,8 @@ app = Flask(__name__)
 model = Custom_Model()
 cols =["feature columns to collect from site"]
 
+PRED_1 = []
+PRED_2 = []
 
 @app.route('/')
 def home():
@@ -33,7 +35,51 @@ def predict():
     user_data = np.array(int_features)
     # prediction = model.predict(user_data) # Assuming it's a list
     # return render_template('home.html', pred='Predicted movies are {}'.format(prediction))
-    return render_template('home.html', pred="Success!")
+
+    PRED_1 = ["Gone with the wind", "The Matrix"] # temp
+
+    return render_template('home.html', first_prediction=PRED_1)
+
+
+@app.route('/nlg', methods=['POST'])
+def get_nlg():
+    """
+    Need a couple things: a string with the nlg stuff and to generate a list of
+    checkbox instructions.
+    :return: IDK if possible, but a tuple [nlg, [buttons]] would probably do.
+    """
+    nlg = "You are seeing this selection because I have determined you have" \
+          " absolutely no taste in movies whatsoever. I'd recommend watching" \
+          " any of these as a start and see if your sense of curiosity and" \
+          " wonder kickstarts itself and helps you get a grip. Also your age" \
+          " group is 20-30 and you like scifi, don't argue."
+
+    # This should cover all ML features we have
+    features = {"scifi": "Stop seeing science fiction",
+                "20-30": "Show me movies outside my age group"}
+
+    masked_features = ["scifi", "20-30"] # temp
+    ret = [nlg, [features[x] for x in masked_features]]
+
+    return render_template('home.html', nlg_component=ret, first_prediction=PRED_1)
+
+
+@app.route('/masked_predict', methods=['POST', 'GET'])
+def masked_predict():
+    feature_masks = ["scifi", "20-30"]
+    mask_values = []
+    for feature in feature_masks:
+        mask_value = request.form.get(feature)
+        if mask_value:
+            mask_values.append(True)
+        else:
+            mask_values.append(False)
+
+    PRED_2 = ["Gone with the wind", "The Matrix"]
+
+    return render_template('final_result.html',
+                           first_prediction=PRED_1,
+                           second_prediction=mask_values)
 
 
 if __name__ == '__main__':

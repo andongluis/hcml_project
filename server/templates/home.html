@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Custom movie prediction!</title>
+    <title>Custom movie prediction</title>
     <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Hind:300" rel="stylesheet" type="text/css">
@@ -11,19 +11,42 @@
 </head>
 <body>
     <div class="login">
-        <h1>Predict your next movie</h1>
+        <h1>Customize your movie prediction</h1>
+        <p>A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
 
-        <!-- This is the form to define user's favorite movies/tags-->
+        <!-- TODO would be nice to hide predict_1 button after choice -->
         <form action="{{url_for('predict')}}" method="POST">
-            <input type="text" name="name", placeholder="your name" required="required" /><br>
-            <textarea name="fav_movies", rows="10" cols="30">Give us a few movies you really like (separated by commas)
-            </textarea>
-
             <button type="submit" class="btn btn-primary btn-block btn-large">Predict</button>
         </form>
-    </div>
-    <div class="result">
-        {{pred}}
+
+
+        {% if first_prediction is defined and not empty%}
+        <ol>
+            {% for pred in first_prediction %}
+            <li>{{ pred }}</li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+
+        {% if first_prediction is defined and not nlg_component %}
+        <form action="{{url_for('get_nlg')}}" method="POST">
+            <button class="btn info">Why are you showing me these movies?</button>
+        </form>
+        {% endif %}
+
+        {% if nlg_component %}
+        <div class="nlg">
+            <p>{{nlg_component[0]}}</p>
+        </div>
+        <form action="{{url_for('masked_predict')}}" method="POST">
+            {% for option in nlg_component[1] %}
+                <input type="checkbox" id={{option}} name={{option}} value="feature_mask">
+                <label for={{option}}>{{option}}</label>
+            {% endfor %}
+            <br><br>
+            <button type="submit" class="btn btn-primary btn-block btn-large">Predict Again!</button>
+        </form>
+        {% endif %}
     </div>
 </body>
 </html>
