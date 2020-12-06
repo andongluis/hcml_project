@@ -121,7 +121,7 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
         string: Explanation about the impact of the top 2 features in terms of magnitude
     """
     close_choice = {
-        'roughly': ['roughly', 'approximately', 'nearly', ''],
+        'roughly': ['roughly', 'approximately', 'nearly'],
         'evenly': ['evenly', 'equally']
     }
     most = ['most','most significantly', 'more']
@@ -257,7 +257,11 @@ def main():
 
     for rec in recommendations:
         features, sample_movie = highest_weight_features(regressor.coef_, INPUT_FILE, rec['row'])
-        print(provide_explanation(features, regressor.coef_, regressor, sample_movie, rec['title'], rec['rating']))
+        rec['explanation'] = provide_explanation(features, regressor.coef_, regressor, sample_movie, rec['title'], rec['rating'])
+        rec['top_feature'] = features[0][0]
+        rec['next_feature'] = features[1][0]
+    
+    print(recommendations)
 
 
 
