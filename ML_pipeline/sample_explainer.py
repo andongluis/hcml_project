@@ -5,26 +5,82 @@ import random
 from sklearn.linear_model import LinearRegression
 
 # function to generate nlg explanation for the score using the impact from the top 2 impactful features
+
 def explainer(score, feature1, feature2):
+    """Main NLG function, explains movie score
+
+    Args:
+        score (float): regressor predicted score for movie
+        feature1 (string): feature from the movie that most influenced the score
+        feature2 (string): feature from the movie that second most influenced the score
+
+    Returns:
+        string: explanation for the score the movie got using the provided features
+    """
     feature1_z, feature1_sign, feature1 = feature1[1], feature1[2], feature1[0]
     feature2_z, feature2_sign, feature2 = feature2[1], feature2[2], feature2[0]
     features = [feature1, feature2]
-    feature1, feature2 = [feature.split('_')[0]+' tags' if 'tag_av' in feature else feature for feature in features]
+    feature1, feature2 = [ppfeature(feature) for feature in features]
     score = 'This movie received a score of '+str(round(score[0], 1))+' on a 1-5 scale.'
     what = 'Your recommendation was '+determiner(feature1,feature2, feature1_z, feature2_z)
     how = signs(feature1, feature2, feature1_sign, feature2_sign)
     return score + ' ' + what + ' ' + how
 
+# pretty print of genre or tag
+def ppfeature(feature):
+    """Helper function to generate nice looking string from features
+
+    Args:
+        feature (string): feature from a movie
+
+    Returns:
+        string: Nicer looking output given feature
+    """
+    return ('tagged '+feature.split('_')[0] if 'tag_av' in feature
+        else 'movies in the genre '+feature.split('_') if 'av_rating' in feature
+        else feature)
+
+
 # check if the top 2 features are roughly equal
 def close(z1, z2):
+    """Function to determine if difference between z-scores is small
+
+    Args:
+        z1 (float): (pseudo) z-score for feature 1
+        z2 (float): (pseudo) z-score for feature 2
+
+    Returns:
+        boolean: z-scores are roughly equal
+    """
     return abs(z1-z2)<2
 
 # check if the top feature impacted the score much more than the 2nd feature
 def dominated(z1, z2):
+    """Function to determine if difference between z-scores is very large
+
+    Args:
+        z1 (float): (pseudo) z-score for feature 1
+        z2 (float): (pseudo) z-score for feature 2
+
+    Returns:
+        boolean: one z-score is much larger than the other
+    """
     return abs(z1-z2)>10
 
 # generate nlg explanation about whether the top 2 features increased or decreased the score
 def signs(feature1, feature2, feature_sign1, feature_sign2):
+    """Function to explain whether feature1 and feature2 positively or negatively affected the score
+
+    Args:
+        feature1 (string): feature from the movie that most influenced the score
+        feature2 (string): feature from the movie that second most influenced the score
+        feature_sign1 (integer): 1 for positive feature weight or -1 for negative feature weight
+        feature_sign2 (integer): 1 for positive feature weight or -1 for negative feature weight
+
+    Returns:
+        string: NLG explanation for how (positively or negatively) feature 1 and feature 2 affected the
+            regression provided score
+    """
     contrast = False
     f1_dir = ('increased' if feature_sign1 == 1 else 'decreased')
     f2_dir = ('increased' if feature_sign2 == 1 else 'decreased')
@@ -46,8 +102,8 @@ def signs(feature1, feature2, feature_sign1, feature_sign2):
         return ('After '+random.choice(word_choice['choice1'])+', '+random.choice(word_choice['choice2']) 
             +feature1+' and '+feature2+' '+ f1_dir +' the score.')
     else:
-        return (cont_choice+' '+features[num]+' '+f_dirs[num]+(' the score' if random.randint(0,1)==1 else '')+', '+('' if contrast else 'while ')+
-            features[(num+1)%2] + ' '+f_dirs[(num+1)%2])+' the score.'
+        return (cont_choice+' '+features[num]+(' the score' if random.randint(0,1)==1 else '')+', '+('' if contrast else 'while ')+
+            features[(num+1)%2] +' the score.')
 
 # generate nlg explanation for the relative impact the top 2 features had on the score
 def determiner(feature1, feature2, feature1_z, feature2_z):
@@ -73,8 +129,8 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
     but_str = ['. But ', ', but ', '. ']
     sig = feature2_z >= 2
     if is_close and feature1_z >= 2:
-        return (random.choice(most)+' and '+random.choice(choice['roughly'])+' '+random.choice(choice['evenly'])+' '+random.choice(impact['driven'])
-            +' by '+feature1+' and '+feature2)
+        return (random.choice(most)+' and '+random.choice(close_choice['roughly'])+' '+random.choice(close_choice['evenly'])+' '+random.choice(impact['driven'])
+            +' by '+feature1+' and '+feature2)+'.'
     elif is_close:
         return ('not significantly '+random.choice(impact['driven'])+' by any feature, but '+feature1+' and '+feature2+' had the '+random.choice(magnitude['biggest'])+' ' 
             + random.choice(impact['effect'])+' on the score.')
@@ -88,14 +144,23 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
         phrase2 = ' also had ' + ('significant ' if sig else '') + random.choice(impact['effect']) + '.' 
         phrasing = [phrase1, phrase2]
         return phrase + random.choice(phrasing)
-        
-
-
-
 
 # calculate z-scores and create feature objects (holding feature name, z-score and weight sign)
 # then calls explainer function
 def provide_explanation(features_and_weights, weights, regressor, sample_movie):
+    """Superfunction that calculates the score, z-scores for every feature, and which features
+        most heavily influenced the score for sample_movie and calls the explainer function 
+        for an NLG explanation
+
+    Args:
+        features_and_weights (list): list of feature,weight tuples
+        weights (list): list of weights (coefficients from the regression model)
+        regressor ([type]): [description]
+        sample_movie ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     # Keep only non-zero weights
     weights = [w for w in weights if w != 0]
 
@@ -104,30 +169,20 @@ def provide_explanation(features_and_weights, weights, regressor, sample_movie):
     avg = np.average(weights)
     feature_from_z = [(f[0], abs((f[1]-avg)/sd), 1 if f[1]>=0 else -1) for f in features_and_weights]
     score = regressor.predict(sample_movie.reshape(1,-1))
+    print(score)
 
     return explainer(score, *feature_from_z)
     
 # get the 2 movies with the greatest impact on final score, together with their weight for a sample movie and the sign of their weights
 def highest_weight_features(weights, input_file):
     with open(input_file, 'r') as f:
-        lines = f.readlines()
-        features = lines[0].split(',')
-        sample_movie = []
-        for x in lines[1].split(','):
-            try:
-                sample_movie.append(float(x))
-            except ValueError:
-                sample_movie.append(0)
-
-        # Remove features without weights
-        to_remove = ["rating","movieId_x","movieId_y","userId"]
-        for r in to_remove:
-            idx = features.index(r)
-            features.pop(idx)
-            sample_movie.pop(idx)
-
-        sample_movie = np.array(sample_movie)
-
+        df = pd.read_csv(input_file)
+        df = df.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
+        df = (df-df.min())/(df.max()-df.min())
+        df = df.fillna(0)
+        print(df.iloc[7])
+        sample_movie = np.array(df.iloc[7])
+        features = df.columns.tolist()
 
         # Recalculated weights
         recalculated_weights = np.multiply(weights, np.array(sample_movie))
@@ -150,7 +205,7 @@ def highest_weight_features(weights, input_file):
         
 
 def main():
-    INPUT_FILE = "features/3640_feature_vecs.csv"
+    INPUT_FILE = "features/3742_feature_vecs.csv"
 
     df = pd.read_csv(INPUT_FILE)
 
@@ -175,6 +230,8 @@ def main():
 
     regressor = LinearRegression()
     regressor.fit(X,Y)
+    df = pd.read_csv(INPUT_FILE)
+    first_row = df
 
     features, sample_movie = highest_weight_features(regressor.coef_, INPUT_FILE)
     print(provide_explanation(features, regressor.coef_, regressor, sample_movie))
