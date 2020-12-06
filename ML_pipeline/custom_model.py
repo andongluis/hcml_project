@@ -11,7 +11,21 @@ class Custom_Model(object):
 		self.original_parameters = None
 		self.masked_parameters = None # 1 if masked, 0 otherwise
 		self.n_features = 0
-		self.index_map = dict()  # find the tags!
+		self.movie_map = self.generate_movie_map() # map movie ID to movie title
+
+		candidates = pd.read_csv("data/sergio_feature_matrix.csv")
+		self.movie_candidates_ids = list(candidates["movieId_x"])
+		self.movie_candidates = candidates.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
+
+	def generate_movie_map(self):
+
+		df = pd.read_csv("data/movies.csv")
+		movie_map = {}
+
+		for index, row in df.iterrows():
+			movie_map[row["movieId"]] = row["title"]
+
+		return movie_map
 
 	def train(self, X, Y):
 		self.regressor.fit(X, Y)
@@ -52,15 +66,34 @@ class Custom_Model(object):
 	def n_most_relevant(self, n):
 		return self.parameter_relevance()[:n]
 
-	def predict(self, unseen_user):
-		"""
-		TODO: prediction function. Should return a list of movie ids or titles, either one is fine.
-		"""
-		pass
+	def n_recommendations(self, n):
+
+		ratings = self.regressor.predict(self.movie_candidates)
+		sorted_indexes = np.argsort(ratings)
+		sorted_indexes = np.flip(sorted_indexes)
+
+		recommendations = []
+		for i in range(n):
+
+			recommendation = {}
+			index = sorted_indexes[i]
+			movie_id = self.movie_candidates_ids[index]
+			recommendation["id"] = movie_id
+			recommendation["title"] = self.movie_map[movie_id]
+			recommendation["rating"] = ratings[index]
+			recommendation["row"] = self.movie_candidates.iloc[index]
+			recommendations.append(recommendation)
+
+		return recommendations
+
+
+
 
 """
 model = Custom_Model()
 model.train_with_file("features/3640_feature_vecs.csv")
+recommendations = model.n_recommendations(2)
+print(recommendations)
 
 # Print original values
 print(model.original_parameters)
