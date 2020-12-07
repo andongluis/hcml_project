@@ -13,13 +13,13 @@ class Custom_Model(object):
 		self.n_features = 0
 		self.movie_map = self.generate_movie_map() # map movie ID to movie title
 
-		candidates = pd.read_csv("data/sergio_feature_matrix.csv")
+		candidates = pd.read_csv("ML_pipeline/data/sergio_feature_matrix.csv")
 		self.movie_candidates_ids = list(candidates["movieId_x"])
 		self.movie_candidates = self.generate_movie_candidates(candidates)
 
 	def generate_movie_map(self):
 
-		df = pd.read_csv("data/movies.csv")
+		df = pd.read_csv("ML_pipeline/data/movies.csv")
 		movie_map = {}
 
 		for index, row in df.iterrows():

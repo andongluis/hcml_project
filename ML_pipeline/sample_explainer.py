@@ -2,8 +2,13 @@ import csv
 import pandas as pd
 import numpy as np
 import random
-import custom_model
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+import ML_pipeline.custom_model as custom_model
 from sklearn.linear_model import LinearRegression
+
 
 # function to generate nlg explanation for the score using the impact from the top 2 impactful features
 
@@ -23,10 +28,11 @@ def explainer(movie_name, score, feature1, feature2):
     feature2_z, feature2_sign, feature2 = feature2[1], feature2[2], feature2[0]
     features = [feature1, feature2]
     feature1, feature2 = [ppfeature(feature) for feature in features]
-    score = movie_name + ' received a score of '+str(round(score, 1))+' on a 1-5 scale.'
-    what = 'This predicted rating was '+determiner(feature1, feature2, feature1_z, feature2_z)
+    score = movie_name + ' received a score of ' + str(round(score, 1)) + ' on a 1-5 scale.'
+    what = 'This predicted rating was ' + determiner(feature1, feature2, feature1_z, feature2_z)
     how = signs(feature1, feature2, feature1_sign, feature2_sign)
     return score + ' ' + what + ' ' + how
+
 
 # pretty print of genre or tag
 def ppfeature(feature):
@@ -38,10 +44,11 @@ def ppfeature(feature):
     Returns:
         string: Nicer looking output given feature
     """
-    return ('your previous ratings for movies with tags containing the term \''+feature.split('_')[0] +'\'' if 'tag_av' in feature
-        else 'your previous ratings movies in the genre \''+feature.split('_') +'\'' if 'av_rating' in feature
-        else 'tags containing the term \''+feature +'\'' if not feature[0].isupper()
-        else 'movies in the genre \''+feature +'\'')
+    return ('your previous ratings for movies with tags containing the term \'' + feature.split('_')[
+        0] + '\'' if 'tag_av' in feature
+            else 'your previous ratings movies in the genre \'' + feature.split('_') + '\'' if 'av_rating' in feature
+    else 'tags containing the term \'' + feature + '\'' if not feature[0].isupper()
+    else 'movies in the genre \'' + feature + '\'')
 
 
 # check if the top 2 features are roughly equal
@@ -55,7 +62,8 @@ def close(z1, z2):
     Returns:
         boolean: z-scores are roughly equal
     """
-    return abs(z1-z2)<2
+    return abs(z1 - z2) < 2
+
 
 # check if the top feature impacted the score much more than the 2nd feature
 def dominated(z1, z2):
@@ -68,7 +76,8 @@ def dominated(z1, z2):
     Returns:
         boolean: one z-score is much larger than the other
     """
-    return abs(z1-z2)>10
+    return abs(z1 - z2) > 10
+
 
 # generate nlg explanation about whether the top 2 features increased or decreased the score
 def signs(feature1, feature2, feature_sign1, feature_sign2):
@@ -88,7 +97,7 @@ def signs(feature1, feature2, feature_sign1, feature_sign2):
     f1_dir = ('increased' if feature_sign1 == 1 else 'decreased')
     f2_dir = ('increased' if feature_sign2 == 1 else 'decreased')
     features = [(feature1 + ' ' + f1_dir), (feature2 + ' ' + f2_dir)]
-    num = random.randint(0,1)
+    num = random.randint(0, 1)
 
     word_choice = {
         'choice1': ['taking the other features into account', 'adjusting for the other features'],
@@ -101,11 +110,13 @@ def signs(feature1, feature2, feature_sign1, feature_sign2):
     contrast = cont_choice != ''
 
     if feature_sign1 == feature_sign2:
-        return ('After '+random.choice(word_choice['choice1'])+', '+random.choice(word_choice['choice2']) 
-            +feature1+' and '+feature2+' '+ f1_dir +' the score.')
+        return ('After ' + random.choice(word_choice['choice1']) + ', ' + random.choice(word_choice['choice2'])
+                + feature1 + ' and ' + feature2 + ' ' + f1_dir + ' the score.')
     else:
-        return (cont_choice+' '+features[num]+(' the score' if random.randint(0,1)==1 else '')+', '+('' if contrast else 'while ')+
-            features[(num+1)%2] +' the score.')
+        return (cont_choice + ' ' + features[num] + (' the score' if random.randint(0, 1) == 1 else '') + ', ' + (
+            '' if contrast else 'while ') +
+                features[(num + 1) % 2] + ' the score.')
+
 
 # generate nlg explanation for the relative impact the top 2 features had on the score
 def determiner(feature1, feature2, feature1_z, feature2_z):
@@ -124,15 +135,15 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
         'roughly': ['roughly', 'approximately', 'nearly'],
         'evenly': ['evenly', 'equally']
     }
-    most = ['most','most significantly', 'more']
+    most = ['most', 'most significantly', 'more']
     impact = {
-        'driven': ['impacted', 'driven', 'affected','influenced'],
+        'driven': ['impacted', 'driven', 'affected', 'influenced'],
         'impacted': ['impacted', 'affected', 'influenced', 'drove'],
         'effect': ['effect', 'impact']
     }
     magnitude = {
-        'biggest': ['biggest','greatest','highest','most'],
-        'bigger': ['a bigger','a greater','a higher', 'most of the']
+        'biggest': ['biggest', 'greatest', 'highest', 'most'],
+        'bigger': ['a bigger', 'a greater', 'a higher', 'most of the']
     }
     dominated_choice = {
         'dominated': ['dominated', 'much more impacted', 'significantly more affected']
@@ -142,27 +153,34 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
     but_str = ['. But ', ', but ', '. ']
     sig = feature2_z >= 2
     if is_close and feature1_z >= 2:
-        return (random.choice(most)+' and '+random.choice(close_choice['roughly'])+' '+random.choice(close_choice['evenly'])+' '+random.choice(impact['driven'])
-            +' by '+feature1+' and '+feature2)+'.'
+        return (random.choice(most) + ' and ' + random.choice(close_choice['roughly']) + ' ' + random.choice(
+            close_choice['evenly']) + ' ' + random.choice(impact['driven'])
+                + ' by ' + feature1 + ' and ' + feature2) + '.'
     elif is_close:
-        return ('not significantly '+random.choice(impact['driven'])+' by any feature, but '+feature1+' and '+feature2+' had the '+random.choice(magnitude['biggest'])+' ' 
-            + random.choice(impact['effect'])+' on the score.')
+        return ('not significantly ' + random.choice(
+            impact['driven']) + ' by any feature, but ' + feature1 + ' and ' + feature2 + ' had the ' + random.choice(
+            magnitude['biggest']) + ' '
+                + random.choice(impact['effect']) + ' on the score.')
     elif is_dominated:
-        return (random.choice(dominated_choice['dominated']) + ' by ' +feature1 + random.choice(but_str) + 
-            feature2 + ' also had significant '+ (random.choice(impact['effect'])+'. ') if sig else '. ' + feature2 + ' also ' + random.choice(impact['impacted']) + ' the score.')
+        return (random.choice(dominated_choice['dominated']) + ' by ' + feature1 + random.choice(but_str) +
+                feature2 + ' also had significant ' + (random.choice(
+            impact['effect']) + '. ') if sig else '. ' + feature2 + ' also ' + random.choice(
+            impact['impacted']) + ' the score.')
     else:
-        phrase = (random.choice(impact['driven']) + ' ' + random.choice(most) + ' by ' + 
-            feature1 + random.choice(but_str) + feature2)
-        phrase1 = ' '+random.choice(impact['impacted']) + ' the score ' + ('significantly ' if sig else '') + 'as well.'
-        phrase2 = ' also had ' + ('significant ' if sig else '') + random.choice(impact['effect']) + '.' 
+        phrase = (random.choice(impact['driven']) + ' ' + random.choice(most) + ' by ' +
+                  feature1 + random.choice(but_str) + feature2)
+        phrase1 = ' ' + random.choice(impact['impacted']) + ' the score ' + (
+            'significantly ' if sig else '') + 'as well.'
+        phrase2 = ' also had ' + ('significant ' if sig else '') + random.choice(impact['effect']) + '.'
         phrasing = [phrase1, phrase2]
         return phrase + random.choice(phrasing)
 
+
 # calculate z-scores and create feature objects (holding feature name, z-score and weight sign)
 # then calls explainer function
-def provide_explanation(features_and_weights, weights, regressor, sample_movie, movie_name, score = None):
+def provide_explanation(features_and_weights, weights, regressor, sample_movie, movie_name, score=None):
     """Superfunction that calculates the score, z-scores for every feature, and which features
-        most heavily influenced the score for sample_movie and calls the explainer function 
+        most heavily influenced the score for sample_movie and calls the explainer function
         for an NLG explanation
 
     Args:
@@ -179,18 +197,19 @@ def provide_explanation(features_and_weights, weights, regressor, sample_movie, 
     # Keep only non-zero weights
     weights = [w for w in weights if w != 0]
 
-    # Calculate standard deviation and average for weights and pair 
+    # Calculate standard deviation and average for weights and pair
     sd = np.std(weights)
     avg = np.average(weights)
-    feature_from_z = [(f[0], abs((f[1]-avg)/sd), 1 if f[1]>=0 else -1) for f in features_and_weights]
+    feature_from_z = [(f[0], abs((f[1] - avg) / sd), 1 if f[1] >= 0 else -1) for f in features_and_weights]
     if not score:
-        score = regressor.predict(sample_movie.reshape(1,-1))
+        score = regressor.predict(sample_movie.reshape(1, -1))
     print(score)
 
     return explainer(movie_name, score, *feature_from_z)
-    
+
+
 # get the 2 features with the greatest impact on final score, together with their weight for a sample movie and the sign of their weights
-def highest_weight_features(weights, input_file, sample_movie = []):
+def highest_weight_features(weights, input_file, sample_movie=[]):
     """Function to calculate the 2 features with the greatest impact on a score for movie sample_movie
         if no sample movie is given we collect one from the table
 
@@ -204,8 +223,8 @@ def highest_weight_features(weights, input_file, sample_movie = []):
     """
     with open(input_file, 'r') as f:
         df = pd.read_csv(input_file)
-        df = df.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
-        df = (df-df.min())/(df.max()-df.min())
+        df = df.drop(["rating", "movieId_x", "movieId_y", "userId"], axis=1)
+        df = (df - df.min()) / (df.max() - df.min())
         df = df.fillna(0)
         if len(sample_movie) == 0:
             sample_movie = np.array(df.iloc[7])
@@ -213,26 +232,26 @@ def highest_weight_features(weights, input_file, sample_movie = []):
 
         # Recalculated weights
         recalculated_weights = np.multiply(weights, np.array(sample_movie))
-        
+
         # Get absolute values for all weights for sorting reasons
-        weights_abs = [(abs(w),w>=0) for w in recalculated_weights]
+        weights_abs = [(abs(w), w >= 0) for w in recalculated_weights]
 
         # Match each weight with its feature
         features_and_weights = zip(features, weights_abs)
 
         # Sort and get the two features with highest magnitude
-        features_and_weights_sorted = sorted(features_and_weights, key = lambda x: x[1][0], reverse = True)
+        features_and_weights_sorted = sorted(features_and_weights, key=lambda x: x[1][0], reverse=True)
 
         # Get the original sign of the weights
-        top_two = ([(feature_and_weight[0], (feature_and_weight[1][0] if feature_and_weight[1][1] 
-                    else -feature_and_weight[1][0])) for feature_and_weight in features_and_weights_sorted[:2]])
+        top_two = ([(feature_and_weight[0], (feature_and_weight[1][0] if feature_and_weight[1][1]
+                                             else -feature_and_weight[1][0])) for feature_and_weight in
+                    features_and_weights_sorted[:2]])
 
         return top_two, sample_movie
 
-        
-
+"""
 def main():
-    """
+    # make comment
     Ping Sergio's class to get n number of recommended movies, including title and most important features
 
     Something like
@@ -243,7 +262,7 @@ def main():
         movie title
         movie row
         rating
-    """
+    # end comment
     INPUT_FILE = "features/3640_feature_vecs.csv"
 
     model = custom_model.Custom_Model()
@@ -267,3 +286,5 @@ def main():
 
 if __name__=='__main__':
     main()
+    
+"""

@@ -12,7 +12,7 @@
 <body>
     <div class="login">
         <h1>Customize your movie prediction</h1>
-        <p>A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
+        <p font-size="14px">A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
 
         <!-- TODO would be nice to hide predict_1 button after choice -->
         <form action="{{url_for('predict')}}" method="POST">
@@ -35,9 +35,8 @@
         {% endif %}
 
         {% if nlg_component %}
-        <div class="nlg">
-            <p>{{nlg_component[0]}}</p>
-        </div>
+        <p align="justify">{{nlg_component[0]}}</p>
+        <p align="center">Which features would you like to ignore?</p>
         <form action="{{url_for('masked_predict')}}" method="POST">
             {% for option in nlg_component[1] %}
                 <input type="checkbox" id={{option}} name={{option}} value="feature_mask">

@@ -5,6 +5,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 # sys.path.insert(0, os.path.abspath('..'))
 from ML_pipeline.custom_model import Custom_Model
+import ML_pipeline.sample_explainer as explainer
 
 """
 1. Import model
@@ -55,8 +56,8 @@ def get_nlg():
           " group is 20-30 and you like scifi, don't argue."
 
     # This should cover all ML features we have
-    features = {"scifi": "Stop seeing science fiction",
-                "20-30": "Show me movies outside my age group"}
+    features = {"scifi": "science fiction",
+                "20-30": "age group"}
 
     masked_features = ["scifi", "20-30"] # temp
     ret = [nlg, [features[x] for x in masked_features]]
