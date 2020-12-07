@@ -2,14 +2,16 @@ import csv
 import pandas as pd
 import numpy as np
 import random
+import custom_model
 from sklearn.linear_model import LinearRegression
 
 # function to generate nlg explanation for the score using the impact from the top 2 impactful features
 
-def explainer(score, feature1, feature2):
+def explainer(movie_name, score, feature1, feature2):
     """Main NLG function, explains movie score
 
     Args:
+        movie_name (string): title of the movie the prediction was made on
         score (float): regressor predicted score for movie
         feature1 (string): feature from the movie that most influenced the score
         feature2 (string): feature from the movie that second most influenced the score
@@ -21,8 +23,8 @@ def explainer(score, feature1, feature2):
     feature2_z, feature2_sign, feature2 = feature2[1], feature2[2], feature2[0]
     features = [feature1, feature2]
     feature1, feature2 = [ppfeature(feature) for feature in features]
-    score = 'This movie received a score of '+str(round(score[0], 1))+' on a 1-5 scale.'
-    what = 'Your recommendation was '+determiner(feature1,feature2, feature1_z, feature2_z)
+    score = movie_name + ' received a score of '+str(round(score, 1))+' on a 1-5 scale.'
+    what = 'This predicted rating was '+determiner(feature1, feature2, feature1_z, feature2_z)
     how = signs(feature1, feature2, feature1_sign, feature2_sign)
     return score + ' ' + what + ' ' + how
 
@@ -36,9 +38,10 @@ def ppfeature(feature):
     Returns:
         string: Nicer looking output given feature
     """
-    return ('tagged '+feature.split('_')[0] if 'tag_av' in feature
-        else 'movies in the genre '+feature.split('_') if 'av_rating' in feature
-        else feature)
+    return ('your previous ratings for movies with tags containing the term \''+feature.split('_')[0] +'\'' if 'tag_av' in feature
+        else 'your previous ratings movies in the genre \''+feature.split('_') +'\'' if 'av_rating' in feature
+        else 'tags containing the term \''+feature +'\'' if not feature[0].isupper()
+        else 'movies in the genre \''+feature +'\'')
 
 
 # check if the top 2 features are roughly equal
@@ -84,7 +87,6 @@ def signs(feature1, feature2, feature_sign1, feature_sign2):
     contrast = False
     f1_dir = ('increased' if feature_sign1 == 1 else 'decreased')
     f2_dir = ('increased' if feature_sign2 == 1 else 'decreased')
-    f_dirs = [f1_dir, f2_dir]
     features = [(feature1 + ' ' + f1_dir), (feature2 + ' ' + f2_dir)]
     num = random.randint(0,1)
 
@@ -107,8 +109,19 @@ def signs(feature1, feature2, feature_sign1, feature_sign2):
 
 # generate nlg explanation for the relative impact the top 2 features had on the score
 def determiner(feature1, feature2, feature1_z, feature2_z):
+    """Explains the relative impact of the top 2 features compared to the others
+
+    Args:
+        feature1 (string): the feature with the greatest impact on the score
+        feature2 (string): the feature with the second greatest impact on the score
+        feature1_z (float): z-score for feature 1 (relative to all other features)
+        feature2_z (float): z-score for feature 2 (relative to all other features)
+
+    Returns:
+        string: Explanation about the impact of the top 2 features in terms of magnitude
+    """
     close_choice = {
-        'roughly': ['roughly', 'approximately', 'nearly', ''],
+        'roughly': ['roughly', 'approximately', 'nearly'],
         'evenly': ['evenly', 'equally']
     }
     most = ['most','most significantly', 'more']
@@ -136,7 +149,7 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
             + random.choice(impact['effect'])+' on the score.')
     elif is_dominated:
         return (random.choice(dominated_choice['dominated']) + ' by ' +feature1 + random.choice(but_str) + 
-            feature2 + ' also had significant '+random.choice(impact['effect']+'.') if sig else '. ' + feature2 + ' also ' + random.randint(impact['impacted']) + ' the score.')
+            feature2 + ' also had significant '+ (random.choice(impact['effect'])+'. ') if sig else '. ' + feature2 + ' also ' + random.choice(impact['impacted']) + ' the score.')
     else:
         phrase = (random.choice(impact['driven']) + ' ' + random.choice(most) + ' by ' + 
             feature1 + random.choice(but_str) + feature2)
@@ -147,7 +160,7 @@ def determiner(feature1, feature2, feature1_z, feature2_z):
 
 # calculate z-scores and create feature objects (holding feature name, z-score and weight sign)
 # then calls explainer function
-def provide_explanation(features_and_weights, weights, regressor, sample_movie):
+def provide_explanation(features_and_weights, weights, regressor, sample_movie, movie_name, score = None):
     """Superfunction that calculates the score, z-scores for every feature, and which features
         most heavily influenced the score for sample_movie and calls the explainer function 
         for an NLG explanation
@@ -155,11 +168,13 @@ def provide_explanation(features_and_weights, weights, regressor, sample_movie):
     Args:
         features_and_weights (list): list of feature,weight tuples
         weights (list): list of weights (coefficients from the regression model)
-        regressor ([type]): [description]
-        sample_movie ([type]): [description]
+        regressor (sklearn LinearRegression object): the trained regression model
+        sample_movie (nd_array): feature vector for movie sample_movie
+        movie_name (string): title of the movie explanation is made for
+        score (float): predicted rating for movie
 
     Returns:
-        [type]: [description]
+        string: Explanation returned by explainer function
     """
     # Keep only non-zero weights
     weights = [w for w in weights if w != 0]
@@ -168,20 +183,32 @@ def provide_explanation(features_and_weights, weights, regressor, sample_movie):
     sd = np.std(weights)
     avg = np.average(weights)
     feature_from_z = [(f[0], abs((f[1]-avg)/sd), 1 if f[1]>=0 else -1) for f in features_and_weights]
-    score = regressor.predict(sample_movie.reshape(1,-1))
+    if not score:
+        score = regressor.predict(sample_movie.reshape(1,-1))
     print(score)
 
-    return explainer(score, *feature_from_z)
+    return explainer(movie_name, score, *feature_from_z)
     
-# get the 2 movies with the greatest impact on final score, together with their weight for a sample movie and the sign of their weights
-def highest_weight_features(weights, input_file):
+# get the 2 features with the greatest impact on final score, together with their weight for a sample movie and the sign of their weights
+def highest_weight_features(weights, input_file, sample_movie = []):
+    """Function to calculate the 2 features with the greatest impact on a score for movie sample_movie
+        if no sample movie is given we collect one from the table
+
+    Args:
+        weights (list): feature vector of weights from the model
+        input_file (string): input file location
+
+    Returns:
+        tuple: tuple consisting of a tuple with the top 2 features weights, and a weight vector for movie
+            sample_movie
+    """
     with open(input_file, 'r') as f:
         df = pd.read_csv(input_file)
         df = df.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
         df = (df-df.min())/(df.max()-df.min())
         df = df.fillna(0)
-        print(df.iloc[7])
-        sample_movie = np.array(df.iloc[7])
+        if len(sample_movie) == 0:
+            sample_movie = np.array(df.iloc[7])
         features = df.columns.tolist()
 
         # Recalculated weights
@@ -205,36 +232,37 @@ def highest_weight_features(weights, input_file):
         
 
 def main():
-    INPUT_FILE = "features/3742_feature_vecs.csv"
+    """
+    Ping Sergio's class to get n number of recommended movies, including title and most important features
 
-    df = pd.read_csv(INPUT_FILE)
+    Something like
 
-    # Ratings
-    Y = df["rating"]
+    recommender.get_recommendation(n)
 
-    # Drop ratings, movie, user columns from traning. I made a booboo and left two columns with movieId when I was merging stuff
-    X = df.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
+    returns n dictionaries containing:
+        movie title
+        movie row
+        rating
+    """
+    INPUT_FILE = "features/3640_feature_vecs.csv"
+
+    model = custom_model.Custom_Model()
+    model.train_with_file(INPUT_FILE)
+    regressor = model.regressor
+
+    NUM_RECOMMENDATIONS = 5
 
 
-    # Fill NaN's will 0's, justin case
-    X.fillna(0, inplace=True)
+    recommendations = model.n_recommendations(NUM_RECOMMENDATIONS)
 
+    for rec in recommendations:
+        features, sample_movie = highest_weight_features(regressor.coef_, INPUT_FILE, rec['row'])
+        rec['explanation'] = provide_explanation(features, regressor.coef_, regressor, sample_movie, rec['title'], rec['rating'])
+        rec['top_feature'] = features[0][0]
+        rec['next_feature'] = features[1][0]
+    
+    print(recommendations)
 
-    # Mean normalization
-    # X=(X-X.mean())/X.std()
-
-    # Min max normalization (somethings std will give errors)
-    X=(X-X.min())/(X.max()-X.min())
-
-    X.fillna(0, inplace=True)
-
-    regressor = LinearRegression()
-    regressor.fit(X,Y)
-    df = pd.read_csv(INPUT_FILE)
-    first_row = df
-
-    features, sample_movie = highest_weight_features(regressor.coef_, INPUT_FILE)
-    print(provide_explanation(features, regressor.coef_, regressor, sample_movie))
 
 
 if __name__=='__main__':
