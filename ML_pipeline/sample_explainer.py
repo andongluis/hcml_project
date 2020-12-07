@@ -307,41 +307,41 @@ class Explainer():
 
 
 
-# def main():
-#     explainer = Explainer()
-#     do = True
-#     masked_features = []
-#     while do:
-#         explainer.get()
-#         for r in explainer.recommendations:
-#             print(r['explanation'])
-#             print(r['top_feature'])
-#             print(r['next_feature'])
-#         ans = input('Do you want to mask a feature? y/n')
-#         if ans == 'y':
-#             feature = input('Which feature do you want to mask?')
-#             explainer.mask_at_index(feature)
-#             masked_features.append(feature)
-#         if len(masked_features) > 0:
-#             ans = input('Do you want to unmask a feature? y/n')
-#             if ans == 'y':
-#                 print('Currently masked features:')
-#                 print(masked_features)
-#                 feature = input('Which feature do you want to unmask?')
-#                 explainer.unmask_at_index(feature)
-#                 masked_features.remove(feature)
-#         if len(masked_features) > 0:
-#             ans = input('Do you want to reset the features? y/n')
-#             if ans == 'y':
-#                 explainer.reset_parameters()
+def main():
+    explainer = Explainer()
+    do = True
+    masked_features = []
+    while do:
+        explainer.get()
+        for r in explainer.recommendations:
+            print(r['explanation'])
+            print(r['top_feature'])
+            print(r['next_feature'])
+        ans = input('Do you want to mask a feature? y/n')
+        if ans == 'y':
+            feature = input('Which feature do you want to mask?')
+            explainer.mask_at_index(feature)
+            masked_features.append(feature)
+        if len(masked_features) > 0:
+            ans = input('Do you want to unmask a feature? y/n')
+            if ans == 'y':
+                print('Currently masked features:')
+                print(masked_features)
+                feature = input('Which feature do you want to unmask?')
+                explainer.unmask_at_index(feature)
+                masked_features.remove(feature)
+        if len(masked_features) > 0:
+            ans = input('Do you want to reset the features? y/n')
+            if ans == 'y':
+                explainer.reset_parameters()
             
-#         ans = input('Do you want to continue? y/n')
-#         if ans == 'n':
-#             do = False
+        ans = input('Do you want to continue? y/n')
+        if ans == 'n':
+            do = False
     
 # #     print(recommendations)
 
 
 
-# if __name__=='__main__':
-#     main()
+if __name__=='__main__':
+    main()
