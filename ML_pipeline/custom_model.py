@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression, Ridge
@@ -5,9 +6,15 @@ from sklearn.linear_model import LinearRegression, Ridge
 
 class Custom_Model(object):
 
-	def __init__(self):
+	def __init__(self, pretrained=True):
 		super(Custom_Model, self).__init__()
-		self.regressor = Ridge() #LinearRegression()
+		self.pickle_path = "trained_model.sav"
+
+		if pretrained:
+			self.regressor = pickle.load(open(self.pickle_path, "rb"))
+		else:
+			self.regressor = Ridge() #LinearRegression()
+
 		self.original_parameters = None
 		self.masked_parameters = None # 1 if masked, 0 otherwise
 		self.n_features = 0
@@ -34,6 +41,9 @@ class Custom_Model(object):
 		candidates = (candidates - candidates.min()) / (candidates.max() - candidates.min())
 		candidates.fillna(0, inplace=True)
 		return candidates
+
+	def pickle_model(self):
+		pickle.dump(self.regressor, open(self.pickle_path, "wb"))
 
 	def train(self, X, Y):
 		self.regressor.fit(X, Y)
@@ -93,8 +103,6 @@ class Custom_Model(object):
 			recommendations.append(recommendation)
 
 		return recommendations
-
-
 
 
 """

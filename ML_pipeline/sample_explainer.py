@@ -77,7 +77,6 @@ class Explainer():
             LinearRegression: Trained linear regression model
         """
         model = custom_model.Custom_Model()
-        model.train_with_file(INPUT_FILE)
         return model
 
 
