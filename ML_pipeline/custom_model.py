@@ -15,7 +15,7 @@ class Custom_Model(object):
 
 		candidates = pd.read_csv("data/sergio_feature_matrix.csv")
 		self.movie_candidates_ids = list(candidates["movieId_x"])
-		self.movie_candidates = candidates.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
+		self.movie_candidates = self.generate_movie_candidates(candidates)
 
 	def generate_movie_map(self):
 
@@ -26,6 +26,14 @@ class Custom_Model(object):
 			movie_map[row["movieId"]] = row["title"]
 
 		return movie_map
+
+	def generate_movie_candidates(self, candidates):
+
+		candidates = candidates.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
+		candidates.fillna(0, inplace=True)
+		candidates = (candidates - candidates.min()) / (candidates.max() - candidates.min())
+		candidates.fillna(0, inplace=True)
+		return candidates
 
 	def train(self, X, Y):
 		self.regressor.fit(X, Y)
@@ -87,6 +95,11 @@ class Custom_Model(object):
 		return recommendations
 
 
+
+model = Custom_Model()
+model.train_with_file("features/3640_feature_vecs.csv")
+recommendations = model.n_recommendations(10)
+print(recommendations)
 
 
 """
