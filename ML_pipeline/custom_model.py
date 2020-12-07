@@ -37,7 +37,7 @@ class Custom_Model(object):
 
 	def train(self, X, Y):
 		self.regressor.fit(X, Y)
-		self.original_parameters = self.regressor.coef_
+		self.original_parameters = self.regressor.coef_.copy()
 		self.n_features = len(self.original_parameters)
 		self.masked_parameters = [0] * self.n_features
 
@@ -96,7 +96,7 @@ class Custom_Model(object):
 
 
 
-"""
+
 model = Custom_Model()
 model.train_with_file("features/3640_feature_vecs.csv")
 recommendations = model.n_recommendations(2)
@@ -127,4 +127,3 @@ print(model.regressor.coef_[max_index])
 
 # Print 10 most relevant feature indexes
 print(model.n_most_relevant(10))
-"""
