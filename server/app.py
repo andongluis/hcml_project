@@ -15,13 +15,12 @@ from ML_pipeline.sample_explainer import Explainer
 """
 
 app = Flask(__name__)
+app.jinja_env.filters['zip'] = zip
 
 # For testing I'm using default weights, have to load trained model later
 explainer = Explainer()
-cols =["feature columns to collect from site"]
-
 PRED_1 = explainer.get()["recommendations"]
-PRED_2 = dict()
+OLD_PRED = dict()
 
 
 @app.route('/')
@@ -47,13 +46,43 @@ def show_nlg():
     return render_template('home.html', rec=rec)
 
 
-@app.route('/masked_predict', methods=['POST', 'GET'])
+@app.route('/masked_predict', methods=['POST'])
 def masked_predict():
-    PRED_2 = ["Gone with the wind", "The Matrix"]
+    if request.form.get("feature_mask_1"):
+        explainer.mask_at_index(request.form.get("feature_mask_1"))
 
-    return render_template('final_result.html',
-                           first_prediction=PRED_1,
-                           second_prediction=PRED_2)
+    if request.form.get("feature_mask_2"):
+        explainer.mask_at_index(request.form.get("feature_mask_2"))
+
+    global OLD_PRED, PRED_1
+    OLD_PRED = PRED_1[:]
+
+    PRED_1 = explainer.get()["recommendations"]
+
+    titles_1 = [rec["title"] for rec in PRED_1]
+
+    print(titles_1)
+
+    return render_template('home.html', titles_1=titles_1)
+
+
+@app.route('/comparison', methods=['POST'])
+def side_by_side():
+    global PRED_1, OLD_PRED
+    titles_old = [rec["title"] for rec in OLD_PRED]
+    titles_new = [rec["title"] for rec in PRED_1]
+
+    return render_template('comparison.html', preds=[titles_old, titles_new])
+
+
+@app.route('/model_reset', methods=['POST'])
+def reset_model():
+    explainer.reset_parameters()
+
+    global PRED_1
+    PRED_1 = explainer.get()["recommendations"]
+
+    return render_template('home.html')
 
 
 if __name__ == '__main__':

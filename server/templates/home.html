@@ -8,12 +8,13 @@
 <body>
     <div class="login">
         <h1>Customize your movie prediction</h1>
-        <p font-size="10px">A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
 
-        <!-- TODO would be nice to hide predict_1 button after choice -->
+        <!-- Show the predict button at start -->
+        {% if not titles_1 and not rec %}
         <form action="{{url_for('predict')}}" method="POST">
             <button type="submit" class="btn btn-primary btn-block btn-large">Predict</button>
         </form>
+        {% endif %}
 
         <!-- Show the list of predicted movies -->
         {% if titles_1 is defined and not empty%}
@@ -24,6 +25,11 @@
                 {% endfor %}
             </ol>
         </form>
+            {% if request.endpoint == 'masked_predict' %}
+            <form action="{{url_for('side_by_side')}}" method="POST">
+                <button type="submit" class="btn btn-primary btn-block btn-large double-spaced">Compare changes</button>
+            </form>
+            {% endif %}
         {% endif %}
 
         <!-- Show the explanation for the selected movie -->
@@ -36,15 +42,25 @@
         <p align="center">Which features would you like to ignore?</p>
         <form action="{{url_for('masked_predict')}}" method="POST">
             <div class="boxes">
-                <input type="checkbox" id="feature_mask_1" name="feature_mask_1">
+                <input type="checkbox" id="feature_mask_1" name="feature_mask_1" value='{{rec["top_feature"]}}'>
                 <label for="feature_mask_1">{{rec['top_feature']}}</label>
                 <br>
-                <input type="checkbox" id="feature_mask_2" name="feature_mask_2">
+                <input type="checkbox" id="feature_mask_2" name="feature_mask_2" value='{{rec["next_feature"]}}'>
                 <label for="feature_mask_2">{{rec['next_feature']}}</label>
             </div>
             <button type="submit" class="btn btn-primary btn-block btn-large spaced">Predict Again!</button>
         </form>
         {% endif %}
+
+        <!-- Show the reset button -->
+        <footer>
+            <div class="authors">
+                <p font-size="10px">A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
+            </div>
+            <form action="{{url_for('reset_model')}}" method="POST">
+                <button type="submit" class="btn btn-primary btn-block btn-large quarter">RESET</button>
+            </form>
+        </footer>
     </div>
 </body>
 </html>

@@ -39,12 +39,30 @@ body {
 	height:400px;
 }
 
+.comparisons {
+	position: absolute;
+	top: 20%;
+	left: 25%;
+	margin: -150px 0 0 -150px;
+	width:800px;
+	height:400px;
+	float:left;
+}
+
+.authors {
+    font-size: 12px;
+}
+
 .boxes {
     text-align:left;
 }
 
 .spaced {
     margin: 0 0 -100px 0;
+}
+
+.double-spaced {
+    margin: 0 0 -200px 0;
 }
 
 .btn {
@@ -56,6 +74,9 @@ body {
   display: inline-block;
 }
 
+.quarter {
+    width: 250px;
+}
 
 .hidden {
     color: white;
@@ -65,4 +86,20 @@ body {
     font-size: 16px;
     cursor: pointer;
     display: inline-block;
+}
+
+.sides {
+    display: inline-block;
+    width: 320px;
+    vertical-align: top;
+}
+
+footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: #092356;
+  color: white;
+  text-align: center;
 }

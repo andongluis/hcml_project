@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Custom movie prediction</title>
+    <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='./style.css')}}">
+</head>
+<body>
+    <div class="comparisons">
+        <h1>Your last two predictions compared</h1>
+
+        <!-- Show side by side lists of both predictions -->
+        <div>
+            <span>
+                <ol style="list-style-type: none; display: inline-block; text-align:left;">
+                    {% for old in preds[0] %}
+                    <li>{{old}}</li>
+                    {% endfor %}
+                </ol>
+                <ol style="list-style-type: none; display: inline-block; text-align:left;">
+                    {% for old in preds[0] %}
+                    <li> ==> </li>
+                    {% endfor %}
+                </ol>
+                <ol style="list-style-type: none; display: inline-block; text-align:left;">
+                    {% for old, new in preds[0]|zip(preds[1]) %}
+                        {% if old != new %}
+                        <li style="color:red">{{new}}</li>
+                        {% else %}
+                        <li style="color:green">{{new}}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </span>
+            <button type="submit" class="btn btn-primary btn-block btn-large quarter spaced" onclick="history.back(-1)">
+                Go Back
+            </button>
+        </div>
+        <!-- Show the reset button -->
+        <footer>
+            <div class="authors">
+                <p font-size="10px">A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
+            </div>
+            <form action="{{url_for('reset_model')}}" method="POST">
+                <button type="submit" class="btn btn-primary btn-block btn-large quarter">RESET</button>
+            </form>
+        </footer>
+    </div>
+</body>
+</html>

@@ -30,7 +30,7 @@ class Explainer():
             containing explanations, movie title, rating, and features in case of wanted
             masking or unmasking
         """
-        INPUT_FILE = "features/3640_feature_vecs.csv"
+        INPUT_FILE = "ML_pipeline/features/3640_feature_vecs.csv"
 
         if not self.model:
             self.model = self.get_regression_model(INPUT_FILE)
@@ -263,7 +263,7 @@ class Explainer():
         feature_from_z = [(f[0], abs((f[1]-avg)/sd), 1 if f[1]>=0 else -1) for f in features_and_weights]
         if not score:
             score = regressor.predict(sample_movie.reshape(1,-1))
-        print(score)
+        # print(score)
 
         return self.explainer(movie_name, score, *feature_from_z)
         
