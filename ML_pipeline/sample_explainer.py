@@ -7,21 +7,17 @@ import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 import ML_pipeline.custom_model as custom_model
-from sklearn.linear_model import LinearRegression
 
-from flask import Flask
-from flask_restful import Resource, Api, reqparse
+
 import pandas as pd
-import ast
-app = Flask(__name__)
-api = Api(app)
+
 
 # function to generate nlg explanation for the score using the impact from the top 2 impactful features
 
-class Explainer(Resource):
+class Explainer():
 
     def get(self):
-        INPUT_FILE = "features/3640_feature_vecs.csv"
+        INPUT_FILE = "ML_pipeline/features/3640_feature_vecs.csv"
 
         model = custom_model.Custom_Model()
         model.train_with_file(INPUT_FILE)
@@ -264,7 +260,7 @@ class Explainer(Resource):
 
             return top_two, sample_movie
 
-api.add_resource(Explainer, '/explainer')
+# api.add_resource(Explainer, '/explainer')
 
 
 
@@ -299,8 +295,3 @@ api.add_resource(Explainer, '/explainer')
 #         rec['next_feature'] = features[1][0]
     
 #     print(recommendations)
-
-
-
-if __name__=='__main__':
-    app.run(debug=True)

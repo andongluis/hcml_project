@@ -3,47 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Custom movie prediction</title>
-    <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Hind:300" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet" type="text/css">
     <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='./style.css')}}">
 </head>
 <body>
     <div class="login">
         <h1>Customize your movie prediction</h1>
-        <p font-size="14px">A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
+        <p font-size="10px">A project by: Alexander Einarsson, Andong Li Zhao, Sergio Servantez and Jakub Wasylkowski</p>
 
         <!-- TODO would be nice to hide predict_1 button after choice -->
         <form action="{{url_for('predict')}}" method="POST">
             <button type="submit" class="btn btn-primary btn-block btn-large">Predict</button>
         </form>
 
-
-        {% if first_prediction is defined and not empty%}
-        <ol>
-            {% for pred in first_prediction %}
-            <li>{{ pred }}</li>
-            {% endfor %}
-        </ol>
-        {% endif %}
-
-        {% if first_prediction is defined and not nlg_component %}
-        <form action="{{url_for('get_nlg')}}" method="POST">
-            <button class="btn info">Why are you showing me these movies?</button>
+        <!-- Show the list of predicted movies -->
+        {% if titles_1 is defined and not empty%}
+        <form action="{{url_for('show_nlg')}}" method="POST">
+            <ol>
+                {% for title in titles_1 %}
+                <li><button class="hidden" title="Why am I seeing this?" name="movie_1" value='{{title}}'>{{ title }}</button></li>
+                {% endfor %}
+            </ol>
         </form>
         {% endif %}
 
-        {% if nlg_component %}
-        <p align="justify">{{nlg_component[0]}}</p>
+        <!-- Show the explanation for the selected movie -->
+        {% if rec is defined and not empty %}
+            <p align="justify">{{rec['explanation']}}</p>
+        {% endif %}
+
+        <!-- Show the checkboxes for the masking features -->
+        {% if rec is defined and not empty %}
         <p align="center">Which features would you like to ignore?</p>
         <form action="{{url_for('masked_predict')}}" method="POST">
-            {% for option in nlg_component[1] %}
-                <input type="checkbox" id={{option}} name={{option}} value="feature_mask">
-                <label for={{option}}>{{option}}</label>
-            {% endfor %}
-            <br><br>
-            <button type="submit" class="btn btn-primary btn-block btn-large">Predict Again!</button>
+            <div class="boxes">
+                <input type="checkbox" id="feature_mask_1" name="feature_mask_1">
+                <label for="feature_mask_1">{{rec['top_feature']}}</label>
+                <br>
+                <input type="checkbox" id="feature_mask_2" name="feature_mask_2">
+                <label for="feature_mask_2">{{rec['next_feature']}}</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-large spaced">Predict Again!</button>
         </form>
         {% endif %}
     </div>
