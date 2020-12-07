@@ -9,33 +9,80 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 import ML_pipeline.custom_model as custom_model
 
 
-import pandas as pd
-
-
 # function to generate nlg explanation for the score using the impact from the top 2 impactful features
 
 class Explainer():
 
-    def get(self):
-        INPUT_FILE = "ML_pipeline/features/3640_feature_vecs.csv"
+    def __init__(self):
+        """init function
+        """
+        self.recommendations = None
+        self.model = None
+        self.feature_list = None
 
-        model = custom_model.Custom_Model()
-        model.train_with_file(INPUT_FILE)
-        regressor = model.regressor
+
+    def get(self):
+        """Function to call to get recommendations and explanations for those recommendations
+        from regression model
+
+        Returns:
+            dict: dictionary containing a single k,v pair where v is a list of recommendations
+            containing explanations, movie title, rating, and features in case of wanted
+            masking or unmasking
+        """
+        INPUT_FILE = "features/3640_feature_vecs.csv"
+
+        if not self.model:
+            self.model = self.get_regression_model(INPUT_FILE)
 
         NUM_RECOMMENDATIONS = 5
 
+        self.recommendations = self.model.n_recommendations(NUM_RECOMMENDATIONS)
 
-        recommendations = model.n_recommendations(NUM_RECOMMENDATIONS)
-
-        for rec in recommendations:
-            features, sample_movie = self.highest_weight_features(regressor.coef_, INPUT_FILE, rec['row'])
-            rec['explanation'] = self.provide_explanation(features, regressor.coef_, regressor, sample_movie, rec['title'], rec['rating'])
+        for rec in self.recommendations:
+            features, sample_movie = self.highest_weight_features(self.model.regressor.coef_, INPUT_FILE, rec['row'])
+            rec['explanation'] = self.provide_explanation(features, self.model.regressor.coef_, self.model.regressor, sample_movie, rec['title'], rec['rating'])
             rec['top_feature'] = features[0][0]
             rec['next_feature'] = features[1][0]
             rec.pop('row')
 
-        return {'recommendations': recommendations}
+        return {'recommendations': self.recommendations}
+
+    def mask_at_index(self, feature):
+        """calls custom_model mask_at_index function
+
+        Args:
+            feature (string): feature to mask
+        """
+        idx = self.feature_list.index(feature)
+        self.model.mask_at_index(idx)
+
+    def unmask_at_index(self, feature):
+        """calls custom_model unmask_at_index function
+
+        Args:
+            feature (string): feature to unmask
+        """
+        idx = self.feature_list.index(feature)
+        self.model.unmask_at_index(idx)
+
+    def reset_parameters(self):
+        """calls custom_model reset parameters function
+        """
+        self.model.reset_parameters()
+
+    def get_regression_model(self, INPUT_FILE):
+        """trains regression model using data from INPUT_FILE
+
+        Args:
+            INPUT_FILE (string): File name for file with data to train model on
+
+        Returns:
+            LinearRegression: Trained linear regression model
+        """
+        model = custom_model.Custom_Model()
+        model.train_with_file(INPUT_FILE)
+        return model
 
 
     def explainer(self, movie_name, score, feature1, feature2):
@@ -241,6 +288,7 @@ class Explainer():
             if len(sample_movie) == 0:
                 sample_movie = np.array(df.iloc[7])
             features = df.columns.tolist()
+            self.feature_list = features
 
             # Recalculated weights
             recalculated_weights = np.multiply(weights, np.array(sample_movie))
@@ -265,33 +313,35 @@ class Explainer():
 
 
 # def main():
-#     """
-#     Ping Sergio's class to get n number of recommended movies, including title and most important features
-
-#     Something like
-
-#     recommender.get_recommendation(n)
-
-#     returns n dictionaries containing:
-#         movie title
-#         movie row
-#         rating
-#     """
-#     INPUT_FILE = "features/3640_feature_vecs.csv"
-
-#     model = custom_model.Custom_Model()
-#     model.train_with_file(INPUT_FILE)
-#     regressor = model.regressor
-
-#     NUM_RECOMMENDATIONS = 5
-
-
-#     recommendations = model.n_recommendations(NUM_RECOMMENDATIONS)
-
-#     for rec in recommendations:
-#         features, sample_movie = highest_weight_features(regressor.coef_, INPUT_FILE, rec['row'])
-#         rec['explanation'] = provide_explanation(features, regressor.coef_, regressor, sample_movie, rec['title'], rec['rating'])
-#         rec['top_feature'] = features[0][0]
-#         rec['next_feature'] = features[1][0]
+#     explainer = Explainer()
+#     do = True
+#     masked_features = []
+#     while do:
+#         explainer.get()
+#         for r in explainer.recommendations:
+#             print(r['explanation'])
+#             print(r['top_feature'])
+#             print(r['next_feature'])
+#         ans = input('Do you want to mask a feature? y/n')
+#         if ans == 'y':
+#             feature = input('Which feature do you want to mask?')
+#             explainer.mask_at_index(feature)
+#             masked_features.append(feature)
+#         if len(masked_features) > 0:
+#             ans = input('Do you want to unmask a feature? y/n')
+#             if ans == 'y':
+#                 print('Currently masked features:')
+#                 print(masked_features)
+#                 feature = input('Which feature do you want to unmask?')
+#                 explainer.unmask_at_index(feature)
+#                 masked_features.remove(feature)
+#         if len(masked_features) > 0:
+#             ans = input('Do you want to reset the features? y/n')
+#             if ans == 'y':
+#                 explainer.reset_parameters()
+            
+#         ans = input('Do you want to continue? y/n')
+#         if ans == 'n':
+#             do = False
     
 #     print(recommendations)
