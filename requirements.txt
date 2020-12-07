@@ -3,3 +3,6 @@ flask
 pandas
 scikit-learn
 jinja2
+gunicorn
+certifi
+itsdangerous
