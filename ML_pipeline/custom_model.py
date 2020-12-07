@@ -12,12 +12,15 @@ class Custom_Model(object):
 
 		if pretrained:
 			self.regressor = pickle.load(open(self.pickle_path, "rb"))
+			self.original_parameters = self.regressor.coef_.copy()
+			self.n_features = len(self.original_parameters)
+			self.masked_parameters = [0] * self.n_features
 		else:
 			self.regressor = Ridge() #LinearRegression()
+			self.original_parameters = None
+			self.masked_parameters = None # 1 if masked, 0 otherwise
+			self.n_features = 0
 
-		self.original_parameters = None
-		self.masked_parameters = None # 1 if masked, 0 otherwise
-		self.n_features = 0
 		self.movie_map = self.generate_movie_map() # map movie ID to movie title
 
 		candidates = pd.read_csv("data/sergio_feature_matrix.csv")
@@ -107,7 +110,7 @@ class Custom_Model(object):
 
 """
 model = Custom_Model()
-model.train_with_file("features/3640_feature_vecs.csv")
+#model.train_with_file("features/3640_feature_vecs.csv")
 recommendations = model.n_recommendations(2)
 print(recommendations)
 
@@ -117,7 +120,7 @@ print(model.masked_parameters[:10])
 
 # Mask first parameter and print
 model.mask_at_index(0)
-print(model.original_parameters)
+print(model.regressor.coef_)
 print(model.masked_parameters[:10])
 
 # Unmask first parameter and print
