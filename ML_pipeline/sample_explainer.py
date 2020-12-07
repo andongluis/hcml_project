@@ -30,7 +30,7 @@ class Explainer():
             containing explanations, movie title, rating, and features in case of wanted
             masking or unmasking
         """
-        INPUT_FILE = "ML_pipeline/features/3640_feature_vecs.csv"
+        INPUT_FILE = "ML_pipeline/features/training_set.csv"
 
         if not self.model:
             self.model = self.get_regression_model(INPUT_FILE)
@@ -81,7 +81,6 @@ class Explainer():
             LinearRegression: Trained linear regression model
         """
         model = custom_model.Custom_Model()
-        model.train_with_file(INPUT_FILE)
         return model
 
 
