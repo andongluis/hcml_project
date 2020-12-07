@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
 
 
 class Custom_Model(object):
 
 	def __init__(self):
 		super(Custom_Model, self).__init__()
-		self.regressor = LinearRegression()
+		self.regressor = Ridge() #LinearRegression()
 		self.original_parameters = None
 		self.masked_parameters = None # 1 if masked, 0 otherwise
 		self.n_features = 0
@@ -93,6 +93,7 @@ class Custom_Model(object):
 			recommendations.append(recommendation)
 
 		return recommendations
+
 
 
 
