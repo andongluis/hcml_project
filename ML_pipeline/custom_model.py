@@ -96,7 +96,7 @@ class Custom_Model(object):
 
 
 
-
+"""
 model = Custom_Model()
 model.train_with_file("features/3640_feature_vecs.csv")
 recommendations = model.n_recommendations(2)
@@ -127,3 +127,4 @@ print(model.regressor.coef_[max_index])
 
 # Print 10 most relevant feature indexes
 print(model.n_most_relevant(10))
+"""
