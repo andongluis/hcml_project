@@ -96,12 +96,6 @@ class Custom_Model(object):
 
 
 
-model = Custom_Model()
-model.train_with_file("features/3640_feature_vecs.csv")
-recommendations = model.n_recommendations(10)
-print(recommendations)
-
-
 """
 model = Custom_Model()
 model.train_with_file("features/3640_feature_vecs.csv")
