@@ -26,7 +26,7 @@ class Explainer():
             containing explanations, movie title, rating, and features in case of wanted
             masking or unmasking
         """
-        INPUT_FILE = "features/3640_feature_vecs.csv"
+        INPUT_FILE = "features/training_set.csv"
 
         if not self.model:
             self.model = self.get_regression_model(INPUT_FILE)
