@@ -8,7 +8,7 @@ class Custom_Model(object):
 
 	def __init__(self, pretrained=True):
 		super(Custom_Model, self).__init__()
-		self.pickle_path = "trained_model.sav"
+		self.pickle_path = "ML_pipeline/trained_model.sav"
 
 		if pretrained:
 			self.regressor = pickle.load(open(self.pickle_path, "rb"))
