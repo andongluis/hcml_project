@@ -10,12 +10,22 @@ from sklearn.linear_model import LinearRegression
 class Explainer():
 
     def __init__(self):
+        """init function
+        """
         self.recommendations = None
         self.model = None
         self.feature_list = None
 
 
     def get(self):
+        """Function to call to get recommendations and explanations for those recommendations
+        from regression model
+
+        Returns:
+            dict: dictionary containing a single k,v pair where v is a list of recommendations
+            containing explanations, movie title, rating, and features in case of wanted
+            masking or unmasking
+        """
         INPUT_FILE = "features/3640_feature_vecs.csv"
 
         if not self.model:
@@ -35,19 +45,37 @@ class Explainer():
         return {'recommendations': self.recommendations}
 
     def mask_at_index(self, feature):
+        """calls custom_model mask_at_index function
+
+        Args:
+            feature (string): feature to mask
+        """
         idx = self.feature_list.index(feature)
         self.model.mask_at_index(idx)
-        print(self.model.regressor.coef_[idx])
 
     def unmask_at_index(self, feature):
+        """calls custom_model unmask_at_index function
+
+        Args:
+            feature (string): feature to unmask
+        """
         idx = self.feature_list.index(feature)
         self.model.unmask_at_index(idx)
-        print(self.model.regressor.coef_[idx])
 
     def reset_parameters(self):
+        """calls custom_model reset parameters function
+        """
         self.model.reset_parameters()
 
     def get_regression_model(self, INPUT_FILE):
+        """trains regression model using data from INPUT_FILE
+
+        Args:
+            INPUT_FILE (string): File name for file with data to train model on
+
+        Returns:
+            LinearRegression: Trained linear regression model
+        """
         model = custom_model.Custom_Model()
         model.train_with_file(INPUT_FILE)
         return model
