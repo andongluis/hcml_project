@@ -8,7 +8,6 @@
 <body>
     <div class="login">
         <h1>Customize your movie prediction</h1>
-        <p style="font-size: 12px;">Click on a movie title to see why it was recommended!</p>
 
         <!-- Show the predict button at start -->
         {% if not titles_1 and not rec %}
@@ -19,6 +18,7 @@
 
         <!-- Show the list of predicted movies -->
         {% if titles_1 is defined and not empty%}
+        <p style="font-size: 12px;">Click on a movie title to see why it was recommended!</p>
         <form action="{{url_for('show_nlg')}}" method="POST">
             <ol>
                 {% for title in titles_1 %}
