@@ -30,10 +30,10 @@ class Explainer():
             containing explanations, movie title, rating, and features in case of wanted
             masking or unmasking
         """
-        INPUT_FILE = "ML_pipeline/features/training_set.csv"
+        INPUT_FILE = "ML_pipeline/features/3640_feature_vecs.csv"
 
         if not self.model:
-            self.model = self.get_regression_model(INPUT_FILE)
+            self.model = self.get_regression_model()
 
         NUM_RECOMMENDATIONS = 5
 
@@ -71,7 +71,7 @@ class Explainer():
         """
         self.model.reset_parameters()
 
-    def get_regression_model(self, INPUT_FILE):
+    def get_regression_model(self):
         """trains regression model using data from INPUT_FILE
 
         Args:
@@ -282,10 +282,10 @@ class Explainer():
         with open(input_file, 'r') as f:
             df = pd.read_csv(input_file)
             df = df.drop(["rating","movieId_x","movieId_y","userId"], axis=1)
-            df = (df-df.min())/(df.max()-df.min())
-            df = df.fillna(0)
-            if len(sample_movie) == 0:
-                sample_movie = np.array(df.iloc[7])
+            # df = (df-df.min())/(df.max()-df.min())
+            # df = df.fillna(0)
+            # if len(sample_movie) == 0:
+            #     sample_movie = np.array(df.iloc[7])
             features = df.columns.tolist()
             self.feature_list = features
 
