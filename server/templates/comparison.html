@@ -11,27 +11,25 @@
 
         <!-- Show side by side lists of both predictions -->
         <div>
-            <span>
-                <ol style="list-style-type: none; display: inline-block; text-align:left;">
-                    {% for old in preds[0] %}
-                    <li>{{old}}</li>
-                    {% endfor %}
-                </ol>
-                <ol style="list-style-type: none; display: inline-block; text-align:left;">
-                    {% for old in preds[0] %}
-                    <li> ==> </li>
-                    {% endfor %}
-                </ol>
-                <ol style="list-style-type: none; display: inline-block; text-align:left;">
-                    {% for old, new in preds[0]|zip(preds[1]) %}
-                        {% if old != new %}
-                        <li style="color:red">{{new}}</li>
-                        {% else %}
-                        <li style="color:green">{{new}}</li>
-                        {% endif %}
-                    {% endfor %}
-                </ol>
-            </span>
+            <p>Original</p>
+            <ol style="display: inline-block; text-align:left;">
+                {% for old in preds[0] %}
+                <li>{{old}}</li>
+                {% endfor %}
+            </ol>
+            <br>
+            <p>Altered</p>
+            <p style="font-size: 12px;">Modified entries in red</p>
+            <ol style="display: inline-block; text-align:left;">
+                {% for old, new in preds[0]|zip(preds[1]) %}
+                    {% if old != new %}
+                    <li style="color:red">{{new}}</li>
+                    {% else %}
+                    <li style="color:green">{{new}}</li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+
             <button type="submit" class="btn btn-primary btn-block btn-large quarter spaced" onclick="history.back(-1)">
                 Go Back
             </button>

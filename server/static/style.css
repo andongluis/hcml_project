@@ -42,9 +42,9 @@ body {
 .comparisons {
 	position: absolute;
 	top: 20%;
-	left: 25%;
+	left: 50%;
 	margin: -150px 0 0 -150px;
-	width:800px;
+	width:400px;
 	height:400px;
 	float:left;
 }
