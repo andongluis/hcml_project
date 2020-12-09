@@ -14,5 +14,9 @@ We have hosted the recommender system on a server which you can visit [here](htt
 ### 2. Local Deployment
 If you weren't able to access the system through the link, we have also set up the app so that it is easy to run locally. Download this repo and open terminal to run the following commands:
 
-`cd [project directory]
-python3 -m venv venv`
+`cd [project directory]`
+`python3 -m venv venv`
+`pip install -r requirements.txt`
+`python wsgi.py`
+
+Then simply cut and paste the generated local host URL into a web browser and you are ready to go!
